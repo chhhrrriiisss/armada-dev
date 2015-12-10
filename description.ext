@@ -1,0 +1,10 @@
+respawn = "BASE"; 
+respawndelay = 1;  
+respawnTemplates[] = {"Base"}; 
+respawnDialog = 0;
+respawnOnStart = 1;
+
+author="SLI";
+OnLoadName = "Armada";
+OnLoadMission = "Titan test mission";
+enableDebugConsole = 1;
