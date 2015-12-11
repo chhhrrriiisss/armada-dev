@@ -112,7 +112,7 @@ class Mission
 		};
 		class Item1
 		{
-			position[]={1726.1598,5.5,5699.4365};
+			position[]={1759.259,5.5,5601.1733};
 			name="titan_spawn";
 			type="Empty";
 			angle=206.84904;

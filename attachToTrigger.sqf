@@ -13,6 +13,14 @@ PLAYER addAction ['Toggle attachment', {
 
 if (isNil "TITAN") then { TITAN = player };
 	
+
+PLAYER addAction ['Set position', {	
+	_p = (screenToWorld[0.5,0.5]);
+	_height = [(_p select 2), 40, 9999] call limitToRange;
+	_p set [2, _height];
+	TITAN setPos _p;
+}];
+
 PLAYER addAction ['Set target', {	
 	TITAN setVariable ['targetPosition',screenToWorld[0.5, 0.5], true ];
 }];

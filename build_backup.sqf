@@ -1,108 +1,37 @@
 
-
-generateAttachments = {
+generateDoors = {
 	
 	_target = [_this, 0, objNull, [objNull]] call filterParam;
 	if (isNull _target) exitWith { false };
 
-	_config = [
-		[["Land_Cargo20_light_green_F", "Land_Cargo20_orange_F", "Land_Cargo20_sand_F"], 10, "CP", TRUE, 80, 20],
-		["T2_Door_Standard", 10, "DP", TRUE, 100, 0]
-	];
+	_doorsArray = [];
+	_maxDoors = 10;
 
-	_tagsToIgnore = _target getVariable ['TTN_DNA', []];
+	for "_i" from 1 to _maxDoors step 1 do {
 
+		_id = format['DP%1', _i];
+		_pos = _target selectionPosition format['DP%1', _i];	
+
+		if (_pos isEqualTo [0,0,0]) exitWith {};
+
+		_dirPos = _target selectionPosition format['DP%1_DIR', _i];	
+		_dirPos = if (_dirPos isEqualTo [0,0,0]) then { _pos } else { _dirPos };
+		_dir = [([_pos, _dirPos] call dirTo) - 90] call normalizeAngle;
+		_doorsArray pushBack [_id, _dir];
+
+	};
+
+	// Add a door at each position in selection
 	{
+		_door = "T2_Door_Standard" createVehicle [0,0,0];
+		_door attachTo [_target,([0,0,0] vectorAdd (boundingCenter _door)), (_x select 0) ]; 
 
+		[_door, (_x select 1)] spawn { 
+			(_this select 0) setDir ([(getDir TITAN) + (_this select 1)] call normalizeAngle);	
+		};		
 
-		_classToUse = (_x select 0);
-		_maxItems = (_x select 1);
-		_tag = (_x select 2);
-		_canRotate = (_x select 3);
-		_chance = (_x select 4);
-		_rotationVariance = (_x select 5);
-
-		if (_tag in _tagsToIgnore) then {} else { 
-
-			_arr = [];
-
-			// Find all entries of that tag
-			for "_i" from 1 to _maxItems step 1 do {
-
-				_id = format['%1%2', _tag,_i];
-				_pos = _target selectionPosition format['%1%2', _tag, _i];	
-
-				if (_pos isEqualTo [0,0,0]) exitWith {};
-
-				_dirPos = _target selectionPosition format['DP%1_DIR', _i];	
-				_dirPos = if (_dirPos isEqualTo [0,0,0]) then { _pos } else { _dirPos };
-				_dir = [([_pos, _dirPos] call dirTo) - 90] call normalizeAngle;
-
-				// Chance we don't use this AP
-				if (_chance < random 100) then {} else {
-					_arr pushBack [_id, _dir];
-				};
-
-			};
-
-
-			// Add a door at each position in selection
-			{	
-				// If it's an array of classes, select a random one
-				_class = if (typename _classToUse == "ARRAY") then {
-					(_classToUse call BIS_fnc_selectRandom)
-				} else {
-					_classToUse
-				};
-
-				_item = _class createVehicle [0,0,0];
-				_item attachTo [_target,([0,0,0] vectorAdd (boundingCenter _item)), (_x select 0) ]; 
-				TITANASSETS pushBack _item;
-
-				if (!_canRotate) then {} else {
-
-
-					[_item, ((_x select 1) + ((random _rotationVariance) - (_rotationVariance/2)))] spawn { 
-						(_this select 0) setDir ([(getDir TITAN) + (_this select 1)] call normalizeAngle);	
-					};		
-				};
-				
-			} foreach _arr;
-
-		};
-
-	} foreach _config;
-
-
-
-	// _doorsArray = [];
-	// _maxDoors = 10;
-
-	// for "_i" from 1 to _maxDoors step 1 do {
-
-	// 	_id = format['DP%1', _i];
-	// 	_pos = _target selectionPosition format['DP%1', _i];	
-
-	// 	if (_pos isEqualTo [0,0,0]) exitWith {};
-
-	// 	_dirPos = _target selectionPosition format['DP%1_DIR', _i];	
-	// 	_dirPos = if (_dirPos isEqualTo [0,0,0]) then { _pos } else { _dirPos };
-	// 	_dir = [([_pos, _dirPos] call dirTo) - 90] call normalizeAngle;
-	// 	_doorsArray pushBack [_id, _dir];
-
-	// };
-
-	// // Add a door at each position in selection
-	// {
-	// 	_door = "T2_Door_Standard" createVehicle [0,0,0];
-	// 	_door attachTo [_target,([0,0,0] vectorAdd (boundingCenter _door)), (_x select 0) ]; 
-
-	// 	[_door, (_x select 1)] spawn { 
-	// 		(_this select 0) setDir ([(getDir TITAN) + (_this select 1)] call normalizeAngle);	
-	// 	};		
-
-	// 	TITANASSETS pushBack _door;
-	// } foreach _doorsArray;
+		TITANASSETS pushBack _door;
+	} foreach _doorsArray;
 
 };
 
@@ -155,48 +84,30 @@ _addEngineSet = {
 
 TITAN_ENGINES_ENABLED = [_this, 0, true, [false]] call filterParam;
 
-_maxParts = 7;
-_engineLocations = [0, _maxParts-1,_maxParts];
+_maxParts = 5;
+_engineLocations = [0, 4,_maxParts];
 _upperLocations = [_maxParts, _maxParts-1, _maxParts-2];
 _armoryLocations = [_maxParts];
-_wallLocations = [1 , 3, 5];
+
 _hangarLocations = [_maxParts-3];
 _turretLocations = [_maxParts, 1];
 
 TITANASSETS = [];
 
-TITAN = "T2_Bulkhead_C" createVehicle (getMarkerPos "titan_spawn");
-
-// Don't add cargo to this element
-TITAN setVariable ['TTN_DNA', ['CP']];
-TITANASSETS pushBack TITAN;
-
-// Engine Room above 
-_engineRoom = "T2_EngineRoom_F" createVehicle [0,0,0];
-_aPosition = (_engineRoom selectionPosition "AP2");
-_engineRoom attachTo [TITAN, [(_aPosition SELECT 0), (_aPosition select 1), (_aPosition select 2) * -1], "AP1"]; 
-_engineRoom setDir ([(getDir TITAN) + 180] call normalizeAngle);	
+// _centre = "T2_Bulkhead_C" createVehicle (getMarkerPos "titan_spawn");
 
 
-TITANASSETS pushBack _engineRoom;
+TITAN = "T2_Bulkhead_01" createVehicle (getMarkerPos "titan_spawn");
+MIRROR = "T2_Bulkhead_01" createVehicle (getMarkerPos "titan_spawn");
+_aPosition = (MIRROR selectionPosition "AP3");
+MIRROR attachTo [TITAN, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "AP4"]; 
+MIRROR setDir ([(getDir TITAN) + 180] call normalizeAngle);	
 
-
-
-_left = "T2_Bulkhead_01" createVehicle (getMarkerPos "titan_spawn");
-_aPosition = (_left selectionPosition "AP4");
-_left attachTo [TITAN, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP3"]; 
-
-_right = "T2_Bulkhead_01" createVehicle (getMarkerPos "titan_spawn");
-_aPosition = (_right selectionPosition "AP3");
-_right attachTo [TITAN, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "AP4"]; 
-_right setDir ([(getDir _left) + 180] call normalizeAngle);	
-
-
-TITANASSETS pushBack _left;
-TITANASSETS pushback _right;
+TITANASSETS pushBack MIRROR;
+TITANASSETS pushback TITAN;
 
 if (0 in _engineLocations) then {
-	[_left, _right] spawn _addEngineSet;
+	[TITAN, MIRROR] spawn _addEngineSet;
 
 };
 
@@ -210,23 +121,32 @@ for "_i" from 1 to _maxParts step 1 do {
 		};
 		"T2_Bulkhead_Stairs_L"		
 	};
-
 	if (_i in _turretLocations) then { _asset = "T2_Bulkhead_Turret_L"; };
 
-	// Center 
+	// Center = 
+
 	_centre = "T2_Bulkhead_C" createVehicle [0,0,0];
 	_aPosition = (_centre selectionPosition "AP1");
-	_centre attachTo [_lastAttached, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
+	_centre attachTo [_lastAttached, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; \
 	_centre attachTo [TITAN];
-	TITANASSETS pushBack _centre;
-	_lastAttached = _centre;
-
+	
 	// Left Side
 	_left = _asset createVehicle [0,0,0];
-	_aPosition = (_left selectionPosition "AP4");
-	_left attachTo [_centre, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP3"]; 
+	_aPosition = (_left selectionPosition "AP1");
+	_left attachTo [_lastAttached, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
 	_left attachTo [TITAN];
+	_lastAttached = _left;
 	TITANASSETS pushBack _left;
+
+	// If it's a turret slot, add a turret!
+	if (_i in _turretLocations) then { 
+		_turret = "T2_Turret_80mm" createVehicle [0,0,0];
+		_aPosition = (_turret selectionPosition "AP1");
+		_turret attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "TP1"]; 
+		_turret attachTo [TITAN];
+		TITANASSETS pushback _turret;
+	};
+
 
 	_asset = (random 100) call {
 		if (_this > 50) exitWith {
@@ -234,72 +154,26 @@ for "_i" from 1 to _maxParts step 1 do {
 		};		
 		"T2_Bulkhead_Stairs_L"
 	};
-
 	if (_i in _turretLocations) then { _asset = "T2_Bulkhead_Turret_L"; };
 
 	_right = _asset createVehicle [0,0,0];
-	_aPosition = (_right selectionPosition "AP3");
-	_right attachTo [_centre, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "AP4"]; 
-	_right attachTo [TITAN];
-	_right setDir ([(getDir TITAN) + 180] call normalizeAngle);	
-	TITANASSETS pushback _right;	
 
 	// If it's a turret slot, add a turret!
 	if (_i in _turretLocations) then { 
-
-		// Left side turret
-		_turret = "T2_Turret_80mm" createVehicle [0,0,0];
-		_aPosition = (_turret selectionPosition "AP1");
-		_turret attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "TP1"]; 
-		_turret attachTo [TITAN];
-		TITANASSETS pushback _turret;
-
-		// Right side turret
 		_turret = "T2_Turret_80mm" createVehicle [0,0,0];
 		_aPosition = (_turret selectionPosition "AP1");
 		_turret attachTo [_right, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "TP1"]; 
 		_turret setDir ([(getDir TITAN) + 180] call normalizeAngle);	
 		TITANASSETS pushback _turret;
-
 	};
 
-	// If this section is a wall
-	if (_i in _wallLocations) then {
+	_aPosition = (_right selectionPosition "AP3");
+	_right attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "AP4"]; 
+	_right attachTo [TITAN];
+	_right setDir ([(getDir TITAN) + 180] call normalizeAngle);	
+	TITANASSETS pushback _right;	
 
-		_timeout = time + 3;
-		waitUntil {
-			Sleep 0.1;
-			( (!isNull attachedTo _centre) && (!isNull attachedTo _left) && (!isNull attachedTo _right) || time > _timeout)
-		};
-		// Center partition
-		_wall = "T2_Wall_CargoNet_C" createVehicle [0,0,0];
-		_aPosition = (_wall selectionPosition "AP1");
-		_wall attachTo [_centre, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
-		_wall attachTo [TITAN];
-		TITANASSETS pushBack _wall;
-
-		// Left side partition
-		_leftWall = "T2_Wall_CargoNet_01" createVehicle [0,0,0];
-		_aPosition = (_leftWall selectionPosition "AP1");
-		_leftWall attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
-		_leftWall attachTo [TITAN];
-		TITANASSETS pushBack _leftWall;
-
-		// Right side partition
-		_rightWall = "T2_Wall_CargoNet_01" createVehicle [0,0,0];
-		_aPosition = (_rightWall selectionPosition "AP2");
-		_rightWall attachTo [_right, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
-		_rightWall attachTo [TITAN];
-		_rightWall setDir ([(getDir TITAN) + 180] call normalizeAngle);
-		TITANASSETS pushBack _rightWall;
-	};
-
-
-	_timeout = time + 3;
-	waitUntil {
-		Sleep 0.1;
-		( (!isNull attachedTo _centre) && (!isNull attachedTo _left) && (!isNull attachedTo _right) || time > _timeout)
-	};
+	
 	
 	// Upper cabin
 	if (_i in _upperLocations) then {
@@ -319,7 +193,7 @@ for "_i" from 1 to _maxParts step 1 do {
 
 		_rightUpper = _asset createVehicle [0,0,0];
 		_aPosition = (_rightUpper selectionPosition "AP3");
-		_rightUpper attachTo [_right, [(_aPosition SELECT 0) , (_aPosition select 1) * -1 , (_aPosition select 2) * -1], "AP8"]; 
+		_rightUpper attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1), (_aPosition select 2) * -1], "AP8"]; 
 		_rightUpper attachTo [TITAN];
 		_rightUpper setDir ([(getDir TITAN) + 180] call normalizeAngle);
 		TITANASSETS pushBack _rightUpper;
@@ -335,17 +209,16 @@ for "_i" from 1 to _maxParts step 1 do {
 
 			// _armory attachTo [_rightUpper, [5,-6.5,3.1], "AP2"]; 
 			// [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1 , (_aPosition select 2) * -1]
-			_timeout = time + 3;
 			waitUntil {
-				Sleep 0.1;
-				( (!isNull attachedTo _rightUpper) && (!isNull attachedTo _leftUpper) || time > _timeout)
+				Sleep 1;
+				([_leftUpper,TITAN] call isAttachedTo)
 			};
 
 			_armory = "T2_BulkheadMid_Armory_R" createVehicle [0,0,0];
 
 			_aPosition = (_armory selectionPosition "AP2");
 
-			_armory attachTo [_rightUpper, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2)*-1], "AP3"]; 
+			_armory attachTo [_leftUpper, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2)*-1], "AP2"]; 
 			_armory attachTo [TITAN];
 			TITANASSETS pushBack _armory;
 
@@ -392,7 +265,7 @@ for "_i" from 1 to _maxParts step 1 do {
 // Cargo Door (Left)
 _cargo = "T2_CargoDoor_L" createVehicle [0,0,0];
 _aPosition = (_cargo selectionPosition "AP1");
-_cargo attachTo [_left, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
+_cargo attachTo [_lastAttached, [(_aPosition SELECT 0) * -1, (_aPosition select 1) * -1, (_aPosition select 2) * -1], "AP2"]; 
 _cargo attachTo [TITAN];
 TITANASSETS pushback _cargo;
 
@@ -439,25 +312,25 @@ HITBOX addEventHandler['EpeContact', {
 	_x setVariable ['titanSource', TITAN, true];	
 } foreach TITANASSETS;
 
-batchAddAttachments = {
+batchAddDoors = {
 	{
-		[_x] call generateAttachments;
+		[_x] call generateDoors;
 		if ((count attachedObjects _x) > 0) then {
-			_x call batchAddAttachments;
+			_x call batchAddDoors;
 		};
 	} foreach attachedObjects _this;
 };
 
-TITAN call batchAddAttachments;
+TITAN call batchAddDoors;
 
 sLEEP 1;
 
 if (!isDedicated) then {
 
-	[] spawn { 
-		Sleep 1;
-		player setPosASL (TITAN modelToWorldVisual [0,-15,15]);
-	};
+	// [] spawn { 
+	// 	Sleep 1;
+	// 	player setPosASL (TITAN modelToWorldVisual [0,-15,15]);
+	// };
 
 };
 
@@ -523,8 +396,6 @@ waitUntil {
 	_targetPos = TITAN getVariable ['targetPosition', [0,0,0]];
 	_speed = TITAN getVariable ['engineSpeed', 0.005];
 	_altitude = TITAN getVariable ['maxAltitude', 40];
-	_minAltitude = 20;
-	_maxAltitude = 100;
 
 
 
@@ -538,8 +409,7 @@ waitUntil {
 
 		// Ease to new target position
 		_vector = [_currentPos, _targetPos] call BIS_fnc_vectorFromXToY; 
-		_targetPos set [2, ([(_targetPos select 2), _minAltitude, _maxAltitude] call limitToRange) ];
-		_heightDif = [((_targetPos select 2) - (_currentPos select 2)) * 0.001, -0.006, 0.006] call limitToRange; // Minimum/Max ascent speed
+		_heightDif = [((_targetPos select 2) - (_currentPos select 2)) * 0.001, -0.012, 0.012] call limitToRange; // Minimum/Max ascent speed
 		_currentPos = [(_currentPos select 0) + (_speed * (_vector select 0)), (_currentPos select 1) + (_speed * (_vector select 1)), (_currentPos select 2) + _heightDif];	
 
 		// Also adjust direction to new location

@@ -59,7 +59,7 @@ setLaunchTimeout = {
 
 	{	
 
-		if (_x == _target) then {
+		if (_x == _target) exitWith {
 
 			systemchat 'found object'; 
 
@@ -99,7 +99,8 @@ setLaunchTimeout = {
 				if (!isNil "TITAN" && !isPlayer TITAN) then {
 
 					// Calculate new rotation for target
-					_dirTo = [_o, (TITAN modelToWorld [0, -50, 0])] call dirTo;
+					_titanPos = (TITAN modelToWorld [0, -50, 0]);
+					_dirTo = [_o, _titanPos] call dirTo;
 					_currentDir = getDir _o;
 					_newDir = [_currentDir - _dirTo] call normalizeAngle;
 					_dirToRange = _newDir / 360;
@@ -116,8 +117,9 @@ setLaunchTimeout = {
 					_o animate ['Lid_3_rot', 1];
 					_o animate ['Lid_4_rot', 1];
 
+					SYSTEMCHAT format['Dir: %1 NewDir: %2 Rad: %3', _dirTo, _newDir, _dirToRange];
 
-					[_o, _dirToRange, _elevToRange] spawn {
+					[_o, _dirToRange, _elevToRange, _titanPos] spawn {
 
 						_timeout = time + 10;
 						waitUntil {
@@ -127,41 +129,69 @@ setLaunchTimeout = {
 
 						(_this select 0) animate ['Launcher_rot', (_this select 2)];	
 						(_this select 0) animate ['Piston_rot', (_this select 2)];
-						(_this select 0) animate ['Piston_inner_slide', (_this select 2)];
+
+						// Wait for elevation adjust before launching
+						_timeout = time + 7;
+						waitUntil {
+							Sleep 0.5;
+							((((_this select 0) animationPhase 'Launcher_rot') == (_this select 2)) || (time > _timeout))
+						};
+
+						Sleep (random 1);
+
+						// Fire a missile
+						_missile = createVehicle ["M_Titan_AT_static", [0,0,0], [], 0, "FLY"];
+						playSound3D ["a3\sounds_f\weapons\rockets\new_rocket_8.wss", (_this select 0), false, getPos (_this select 0), 10, 1, 40]; 
+
+						_missile setPos ((_this select 0) modelToWorld [0,0,5]);
+
+						_timeout = time + 60;
+						waitUntil {
+
+							systemchat format['flight control running %1', time];
+	
+							if (isNil "TITAN") exitWith { true };
+							
+
+							_missilePos = getPos _missile;
+							_targetPos = [ (TITAN modelToWorld [0,-75,0]), 10] call setVariance;
+
+							_heading = [_missilePos,_targetPos] call BIS_fnc_vectorFromXToY;
+
+							_distanceToTarget = _missilePos distance _targetPos;
+							_heightAboveTerrain = (_missilePos select 2);	
+
+							_minSpeed = 20;
+							_maxSpeed = 40;
+							
+							_speed = [(1000 / _distanceToTarget) * _minSpeed, _minSpeed, _maxSpeed] call limitToRange;
+				
+							if (_distanceToTarget > 5 && _heightAboveTerrain <= 3) then {					
+								_heading set[2, 0];
+
+							} else {
+								//deleteVehicle _this;
+							};
+
+							_velocity = [_heading, _speed] call BIS_fnc_vectorMultiply; 	
+
+							_missile setVectorDir _heading; 
+
+							_velocity set [2, ([(_velocity select 2), 0, 999] call limitToRange) ]; 
+
+							_missile setVelocity _velocity; 
+
+							Sleep 0.25;						
+
+							(!alive _missile || isNil "TITAN" || time > _timeout) 
+
+						};		
+
+						systemchat 'flight control aborted...';			
 
 					};					
 
-					SYSTEMCHAT format['Dir: %1 NewDir: %2 Rad: %3', _dirTo, _newDir, _dirToRange];
-
-
-
-		// 			_rocket = createVehicle ["M_Titan_AT_static", _gPos, [], 0, "FLY"];
-		// playSound3D ["a3\sounds_f\weapons\rockets\new_rocket_8.wss", (_this select 2), false, (ASLtoATL visiblePositionASL (_this select 2)), 10, 1, 40]; 
-
-		// _rocket setVectorDir _heading;
-		// _rocket setVelocity _velocity;
-
-		// [(_this select 0)] spawn muzzleEffect;
-
-		// [(ATLtoASL _gPos), (ATLtoASL _targetPos), "RPD"] call markIntersects;	
-
-		// [_rocket, _velocity, _targetPos] spawn {
-		// 	_lastPos = (ASLtoATL visiblePositionASL (_this select 0));
-
-		// 	waitUntil {		
-		// 		Sleep 0.1;
-		// 		// _lastPos = (ASLtoATL visiblePositionASL (_this select 0));
-		// 		// (_this select 1) set [2, ((_this select 1) select 2) -0.09];				
-		// 		// (_this select 0) setVelocity (_this select 1);
-		// 		(!alive (_this select 0))
-		// 	};
-
-		// 	[_lastPos, 5, "RPD"] call markNearby;
-		// 	[_lastPos, 10, 10] call shockwaveEffect;
-
-		// };
-
-
+					
 
 				};		
 
