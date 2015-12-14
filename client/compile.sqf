@@ -5,7 +5,8 @@ waitUntil {
 
 _functions = [
 	['playerRespawn', nil],
-	['playerKilled', nil]
+	['playerKilled', nil],
+	['getZoom', nil]
 ];
 
 [_functions, 'client\functions\', TTN_DEV_BUILD] call functionCompiler;

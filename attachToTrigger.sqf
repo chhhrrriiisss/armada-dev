@@ -1,7 +1,3 @@
-_hasAttachToTrigger = player getVariable ['attachToTrigger', false];
-if (_hasAttachToTrigger) exitWith {};
-player setVariable ['attachToTrigger', true];
-
 player allowDamage false;
 
 removeAllActions player;

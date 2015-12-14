@@ -19,7 +19,9 @@ _functions = [
 	['inString', nil],
 	['isAttachedTo', nil],
 	['findAllMarkers', nil],
-	['cropString', nil]
+	['cropString', nil],
+	['checkScope', nil],
+	['padZeros', nil]
 
 ];
 

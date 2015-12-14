@@ -8,3 +8,4 @@ author="SLI";
 OnLoadName = "Armada";
 OnLoadMission = "Titan test mission";
 enableDebugConsole = 1;
+disableAI = true;

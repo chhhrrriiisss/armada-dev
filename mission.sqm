@@ -9,16 +9,21 @@ class Mission
 		"a3_map_stratis",
 		"A3_Structures_F_Mil_Helipads",
 		"t2_engine",
-		"t2_launcher"
+		"t2_launcher",
+		"t2_door_standard",
+		"A3_Weapons_F_Ammoboxes",
+		"A3_Weapons_F_Beta_Ammoboxes"
 	};
 	addOnsAuto[]=
 	{
 		"A3_Characters_F_BLUFOR",
 		"a3_characters_f",
-		"A3_Air_F_Heli_Light_01",
 		"A3_Structures_F_Mil_Helipads",
-		"t2_engine",
 		"t2_launcher",
+		"A3_Air_F_Heli_Light_01",
+		"t2_door_standard",
+		"A3_Weapons_F_Ammoboxes",
+		"A3_Weapons_F_Beta_Ammoboxes",
 		"a3_map_stratis"
 	};
 	randomSeed=2012993;
@@ -51,8 +56,8 @@ class Mission
 				items=1;
 				class Item0
 				{
-					position[]={1790.905,5.5,5710.8521};
-					azimut=-168.21056;
+					position[]={1791.4788,5.5,5712.1304};
+					azimut=-15.488001;
 					id=0;
 					side="WEST";
 					vehicle="B_Soldier_F";
@@ -65,38 +70,80 @@ class Mission
 	};
 	class Vehicles
 	{
-		items=4;
+		items=9;
 		class Item0
 		{
-			position[]={1775.3895,5.5,5722.1919};
-			azimut=194.61647;
+			position[]={1805.6556,5.5,5705.2534};
 			id=1;
-			side="EMPTY";
-			vehicle="B_Heli_Light_01_F";
-			skill=0.60000002;
-		};
-		class Item1
-		{
-			position[]={1806.1846,5.5,5707.5811};
-			id=2;
 			side="EMPTY";
 			vehicle="Land_HelipadRescue_F";
 			skill=0.60000002;
 		};
+		class Item1
+		{
+			position[]={1776.4109,5.5,5705.1206};
+			id=2;
+			side="EMPTY";
+			vehicle="T2_Launcher";
+			skill=0.60000002;
+		};
 		class Item2
 		{
-			position[]={1795.131,5.5,5723.0313};
+			position[]={1837.283,5.5,5689.0347};
+			azimut=194.61647;
 			id=3;
 			side="EMPTY";
-			vehicle="T2_Engine";
+			vehicle="B_Heli_Light_01_F";
 			skill=0.60000002;
 		};
 		class Item3
 		{
-			position[]={1776.4109,5.5,5705.1206};
+			position[]={1777.6727,5.5,5721.6719};
 			id=4;
 			side="EMPTY";
-			vehicle="T2_Launcher";
+			vehicle="T2_Door_Standard";
+			skill=0.60000002;
+		};
+		class Item4
+		{
+			position[]={1789.416,5.5,5727.5967};
+			azimut=-13.365305;
+			id=5;
+			side="EMPTY";
+			vehicle="T2_Door_Standard";
+			skill=0.60000002;
+		};
+		class Item5
+		{
+			position[]={1803.6989,5.5,5721.6719};
+			azimut=-28.812315;
+			id=6;
+			side="EMPTY";
+			vehicle="T2_Door_Standard";
+			skill=0.60000002;
+		};
+		class Item6
+		{
+			position[]={1782.2219,5.5,5695.5405};
+			id=7;
+			side="EMPTY";
+			vehicle="Box_East_AmmoVeh_F";
+			skill=0.60000002;
+		};
+		class Item7
+		{
+			position[]={1790.2622,5.5,5694.0591};
+			id=8;
+			side="EMPTY";
+			vehicle="Box_IND_Support_F";
+			skill=0.60000002;
+		};
+		class Item8
+		{
+			position[]={1798.5145,5.5,5695.3286};
+			id=9;
+			side="EMPTY";
+			vehicle="I_supplyCrate_F";
 			skill=0.60000002;
 		};
 	};
