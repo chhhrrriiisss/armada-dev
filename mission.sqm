@@ -12,7 +12,9 @@ class Mission
 		"t2_launcher",
 		"t2_door_standard",
 		"A3_Weapons_F_Ammoboxes",
-		"A3_Weapons_F_Beta_Ammoboxes"
+		"A3_Weapons_F_Beta_Ammoboxes",
+		"t2_bulkheadmid_01",
+		"A3_Structures_F_Walls"
 	};
 	addOnsAuto[]=
 	{
@@ -56,7 +58,7 @@ class Mission
 				items=1;
 				class Item0
 				{
-					position[]={1791.4788,5.5,5712.1304};
+					position[]={1792.7096,5.5,5712.1509};
 					azimut=-15.488001;
 					id=0;
 					side="WEST";
@@ -70,7 +72,7 @@ class Mission
 	};
 	class Vehicles
 	{
-		items=9;
+		items=8;
 		class Item0
 		{
 			position[]={1805.6556,5.5,5705.2534};
@@ -106,8 +108,8 @@ class Mission
 		};
 		class Item4
 		{
-			position[]={1789.416,5.5,5727.5967};
-			azimut=-13.365305;
+			position[]={1803.6989,5.5,5721.6719};
+			azimut=-28.812315;
 			id=5;
 			side="EMPTY";
 			vehicle="T2_Door_Standard";
@@ -115,33 +117,24 @@ class Mission
 		};
 		class Item5
 		{
-			position[]={1803.6989,5.5,5721.6719};
-			azimut=-28.812315;
-			id=6;
-			side="EMPTY";
-			vehicle="T2_Door_Standard";
-			skill=0.60000002;
-		};
-		class Item6
-		{
 			position[]={1782.2219,5.5,5695.5405};
-			id=7;
+			id=6;
 			side="EMPTY";
 			vehicle="Box_East_AmmoVeh_F";
 			skill=0.60000002;
 		};
-		class Item7
+		class Item6
 		{
 			position[]={1790.2622,5.5,5694.0591};
-			id=8;
+			id=7;
 			side="EMPTY";
 			vehicle="Box_IND_Support_F";
 			skill=0.60000002;
 		};
-		class Item8
+		class Item7
 		{
 			position[]={1798.5145,5.5,5695.3286};
-			id=9;
+			id=8;
 			side="EMPTY";
 			vehicle="I_supplyCrate_F";
 			skill=0.60000002;

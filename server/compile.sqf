@@ -1,14 +1,15 @@
-waitUntil {
-	Sleep 0.1;
-	!isNil "globalCompileComplete"
-};
-
 _functions = [
 	// ['setupLauncher', nil],
-	['parseLaunchSites', nil]
+	['parseLaunchSites', nil],
+	['initServer', 'server\']
 	// ['initServer', 'server\']
 ];
 
-[_functions, 'server\functions\', TTN_DEV_BUILD] call functionCompiler;
+[_functions, 'server\functions\', TRUE] call functionCompiler;
+
+// Pubvar functions
+pubVar_fnc_logDiag = compile preprocessFile "server\functions\pubVar_logDiag.sqf";
+"pubVar_logDiag" addPublicVariableEventHandler { (_this select 1) call pubVar_fnc_logDiag };
 
 serverCompileComplete = compileFinal "true";
+publicVariable "serverCompileComplete";

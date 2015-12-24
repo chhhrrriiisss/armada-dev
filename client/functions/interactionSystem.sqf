@@ -10,7 +10,78 @@ INT_ACTIONS_LIST = [
 		{ [(_this select 0), 0] execVM 'T2_Door_Standard\animateDoor.sqf'; }, 
 		0, 
 		{ (((_this select 0) animationPhase 'Door_1_slide') > 0.8) }
+	],
+
+	["T2_HangarDoor_L", 
+		["OPEN", "B", 0, "Door_1_trigger"], 
+		{ (_this select 0) ANIMATE ['Door_1_slide', 1]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Door_1_slide') < 0.2) }
+	],
+
+	["T2_HangarDoor_L", 
+		["CLOSE", "B", 0, "Door_1_trigger"], 
+		{ (_this select 0) ANIMATE ['Door_1_slide', 0]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Door_1_slide') > 0.8) }
+	],
+
+	["T2_Bulkhead_Turret_L", 
+		["CLIMB", "B", 0.5, "Ladder_end_trigger"], 
+		{  
+			player action ['ladderDown', (_this select 0), 0, 1]; 
+		}, 
+		2.5, 
+		{ !(["ladder", animationState player] call inString) }
+	],
+
+	["T2_Bulkhead_Turret_L", 
+		["CLIMB", "B", 0.5, "Ladder_start_trigger"], 
+		{  player action ['ladderUp', (_this select 0), 0, 0]; }, 
+		2.5, 
+		{ !(["ladder", animationState player] call inString) }
+	],
+
+	["T2_Airvent_Entry", 
+		["OPEN", "B", 0.5, "Hatch_1_trigger"], 
+		{  (_this select 0) animate ['Hatch_1_slide', 1]; (_this select 0) animate ['Hatch_1_rot_Y', random 0.25]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Hatch_1_slide') < 0.2) }
+	],
+
+	["T2_Airvent_Entry", 
+		["OPEN", "B", 0.5, "Hatch_2_trigger"], 
+		{  (_this select 0) animate ['Hatch_2_slide', 1]; (_this select 0) animate ['Hatch_2_rot_Y', random 0.25]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Hatch_2_slide') < 0.2) }
+	],
+
+
+	[["T2_CargoDoor_R", "T2_CargoDoor_L"], 
+		["OPEN", "B", 0.5, "Door_1_trigger"], 
+		{  [_this select 0, 1] execVM 'T2_CargoDoor\animateDoor.sqf'; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Door_1_rot') < 0.2) }
+	],
+
+	[["T2_BulkheadMid_Armory_R", "T2_BulkheadMid_Armory_L", "T2_BulkheadMid_Stairs_L", "T2_BulkheadMid_01"], 
+		["OPEN", "B", 4, "Shield_1_trigger"], 
+		{ (_this select 0) animate ['Shield_1_slide', 1]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Shield_1_slide') < 0.2) }
+	],
+
+	[["T2_BulkheadMid_Armory_R", "T2_BulkheadMid_Armory_L", "T2_BulkheadMid_Stairs_L", "T2_BulkheadMid_01"], 
+		["CLOSE", "B", 4, "Shield_1_trigger"], 
+		{ (_this select 0) animate ['Shield_1_slide', 0]; }, 
+		0, 
+		{ (((_this select 0) animationPhase 'Shield_1_slide') > 0.8) }
 	]
+
+
+
+	
+	
 	// [cursorTarget, 
 	// 	["TEST", "E", 3], 
 	// 	{ hint 'test'; }, 
@@ -54,7 +125,7 @@ DISPLAY_EH = addMissionEventHandler ["Draw3D", {
 		_c = if (_f) then { [0,1,0,1] } else { [1,0,0,1] };
 
 		_tP = [_p, [0,-0.0825]] call screenOffsetPosition;
-		_d = _p distance player;
+		_d = [(_p distance player), 0.1, 100] call limitToRange;
 		_s = [1.9/_d, 1.4, 1.9] call limitToRange;
 		_o = if (INT_ANIM_STATE > 0.5) then { 1 } else { ([(6/_d), 0.1, 1] call limitToRange) };
 
@@ -68,7 +139,7 @@ DISPLAY_EH = addMissionEventHandler ["Draw3D", {
 
 		if (_f) then {
 
-			_key = (INT_ACTIONS_FOCUS select 1) select 1;
+			_key = if (_duration > 0 && INT_ANIM_STATE > 0) then { format['%1', [_duration - (INT_ANIM_STATE * _duration), 0] call roundTo] } else { ((INT_ACTIONS_FOCUS select 1) select 1) };
 			drawIcon3D ["T2_Data\Images\blank.paa",[1,1,1,_o],_tP,1.8,1.8,2, _key, 0, 0.05, "PuristaMedium"];	
 
 			_aP = [_p, [-0.065,-0.075]] call screenOffsetPosition;
@@ -95,20 +166,6 @@ INT_KU = false;
 INT_KD = false;
 
 INT_LAST_OFFSET_POS = [0,0,0];
-
-stringToCode = {
-	private ['_code'];
-
-	_code = -1;
-
-	{	
-		if ((_x select 0) == _this) exitWith {
-			_code = (_x select 1);
-		};
-	} foreach INT_keyCodes;
-
-	_code
-};
 
 onKeyDown = {
 	
@@ -141,6 +198,14 @@ onKeyDown = {
 					INT_ANIM_STATE = [_timesince / (_this select 1), 0, 1] call limitToRange;
 					((time > _timeout) || (INT_KU))
 				};		
+
+				// Reset animation if press aborted
+				[] spawn {
+					Sleep 0.1;
+					INT_ANIM_STATE = 0;
+				};
+
+
 
 				if (!INT_KU && INT_KD && !isNil "INT_ACTIONS_FOCUS" ) exitWith {
 
@@ -396,13 +461,32 @@ updateInteractions = {
 					(_entry == (typeOf _object))
 				};
 
+				case "ARRAY":
+				{
+					({ if (_x == (typeOf _object)) exitWith { 1 }; false } count _entry > 0)
+				};
+
 				false
 			};
 
 			_valid = if (_match) then {
 
 				_minDistance = (INT_ACTIONS_LIST select _forEachIndex) select 3;
-				_distance = player distance _object;
+				_offsetPosition = [((INT_ACTIONS_LIST select _forEachIndex) select 1), 3, [0,0,0], ["", []]] call filterParam; 
+				_offset = switch (typename _offsetPosition) do {
+					case "STRING":
+					{
+						(_object selectionPosition _offsetPosition)
+					};
+					case "ARRAY":
+					{
+						_offsetPosition
+					};
+					(boundingCenter _object)
+				};
+
+				_distance = player distance (_object modelToWorldVisual _offset);
+
 				if (_minDistance != 0 && _distance > _minDistance) exitWith { false};
 
 				_condition = (INT_ACTIONS_LIST select _forEachIndex) select 4;
@@ -467,112 +551,3 @@ updateInteractions = {
 
 	true 
 };
-
-// Keycodes
-INT_keyCodes = [
-
-	['ESC', 1],
-	['F1', 59],
-	['F2', 60],
-	['F3', 61],
-	['F4', 62],
-	['F5', 63],
-	['F6', 64],
-	['F7', 65],
-	['F8', 66],
-	['F9', 67],
-	['F10', 68],
-	['F11', 87],
-	['F12', 88],
-	['Print', 183],
-	['Scroll', 70],
-	['Pause', 197],
-	['^', 41],
-	['1', 2],
-	['2', 3],
-	['3', 4],
-	['4', 5],
-	['5', 6],
-	['6', 7],
-	['7', 8],
-	['8', 9],
-	['9', 10],
-	['0', 11],
-	['ß', 12],
-	['´', 13],
-	['Ü', 26],
-	['Ö', 39],
-	['Ä', 40],
-	['#', 43],
-	['<', 86],
-	[',', 51],
-	['.', 52],
-	['-', 53],
-	['POS1', 199],
-	['Tab', 15],
-	['Enter', 28],
-	['Del', 211],
-	['Backspace', 14],
-	['Insert', 210],
-	['End', 207],
-	['PgUP', 201],
-	['PgDown', 209],
-	['Caps', 58],
-	['A', 30],
-	['B', 48],
-	['C', 46],
-	['D', 32],
-	['E', 18],
-	['F', 33],
-	['G', 34],
-	['H', 35],
-	['I', 23],
-	['J', 36],
-	['K', 37],
-	['L', 38],
-	['M', 50],
-	['N', 49],
-	['O', 24],
-	['P', 25],
-	['Q', 16],
-	['U', 22],
-	['R', 19],
-	['S', 31],
-	['T', 20],
-	['V', 47],
-	['W', 17],
-	['X', 45],
-	['Y', 21],
-	['Z', 44],
-	['LShift', 42],
-	['RShift', 54],
-	['Up', 200],
-	['Down', 208],
-	['Left', 203],
-	['Right', 205],
-	['Num 0', 82],
-	['Num 1', 79],
-	['Num 2', 80],
-	['Num 3', 81],
-	['Num 4', 75],
-	['Num 5', 76],
-	['Num 6', 77],
-	['Num 7', 71],
-	['Num 8', 72],
-	['Num 9', 73],
-	['Num +', 78],
-	['NUM', 69],
-	['Num /', 181],
-	['Num *', 55],
-	['Num -', 74],
-	['Num Enter', 156],
-	['L Ctrl', 29],
-	['R Ctrl', 157],
-	['L Win', 220],
-	['R Win', 219],
-	['L Alt', 56],
-	['Space', 57],
-	['R Alt', 184],
-	['App ', 221]
-
-];

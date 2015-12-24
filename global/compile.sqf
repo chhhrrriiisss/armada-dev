@@ -7,6 +7,7 @@ functionCompiler = compile preprocessFile "global\functions\functionCompiler.sqf
 
 _functions = [
 	['dirTo', nil],	
+	['dirToVector', nil],	
 	['relPos', nil],	
 	['filterParam', nil],	
 	['vectorsAdd', nil],	
@@ -21,14 +22,16 @@ _functions = [
 	['findAllMarkers', nil],
 	['cropString', nil],
 	['checkScope', nil],
-	['padZeros', nil]
+	['padZeros', nil],
+	['floodControl', nil],
+	['getVectorDirAndUpRelative', nil],
+	['positionToString', nil],
+	['getBoundingBox', nil]
 
 ];
 
-[_functions, 'global\functions\', TTN_DEV_BUILD] call functionCompiler;
-
-if (isDedicated) then {
-	[] execVM 'build.sqf';
-};
+[_functions, 'global\functions\', TRUE] call functionCompiler;
 
 globalCompileComplete = compileFinal "true";
+
+

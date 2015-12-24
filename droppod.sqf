@@ -129,6 +129,7 @@ _armOffsets = [
 	_arm = "T2_DropPod_Arm" createVehicle [0,0,0];
 	_arm attachTo [_pod, (_x select 1)];
 	_arm setDir ([getDir _pod + (_x select 0)] call normalizeAngle);
+	_arm setPos (getPos _arm); // Sync dir
 
 } foreach _armOffsets;
 
@@ -150,6 +151,7 @@ _shellOffsets = [
 	_shell = "T2_DropPod_Shell" createVehicle [0,0,0];
 	_shell attachTo [_pod, (_x select 1)];
 	_shell setDir ([getDir _pod + (_x select 0)] call normalizeAngle);
+	_shell setPos (getPos _shell); // Sync dir setPos (getPos _arm); // Sync dir
 
 } foreach _shellOffsets;
 
@@ -164,10 +166,17 @@ _shellOffsets = [
 // Prep player for launch
 player setVariable ['attachmentEnabled', false];
 player allowDamage false;
-player disableCollisionWith _pod;
-{ player disableCollisionWith _X; } foreach (attachedObjects _pod);
-player switchMove "AmovPknlMstpSrasWrflDnon";
 player hideObjectGlobal true;
+
+_pod disableCollisionWith player;
+player disableCollisionWith	_pod;
+{ 
+	_x disableCollisionWith player;
+	player disableCollisionWith _x; 
+
+} foreach (attachedObjects _pod);
+
+player switchMove "AmovPknlMstpSrasWrflDnon";
 
 // _pen = createVehicle ["Land_PenBlack_F", [0,0,0], [], 0, 'CAN_COLLIDE'];
 // _pen setPos (player modelToWorld [0,5,0]);
@@ -175,33 +184,33 @@ _source = player;
 
 // Prep pod for launch
 _pod allowDamage false;
+// _pod enablesimulation false;
+// { _x enablesimulatioN false; } foreach (attachedObjects _pod);
 
-_target = getMarkerPos "drop_target";
-_playerPos = getPos _source;
-
-_distance = _source distance _target;
-_dir = [_source, _target] call dirTo;
-_difHeight = (_target select 2) - (_playerPos select 2);
-
-_midPoint = [_source, _distance * 0.9, _dir] call relPos;
-_midPoint set [2, (_difHeight / 2) + 50 ];
-
-// _target = player modelToWorld [0,50,0];
-// _target set [2, 0];
-
-
-_vector = [getpos _source, _midPoint] call BIS_fnc_vectorFromXToY;	
-_velocityToTarget = [_distance, 10, 150] call limitToRange;
-_vector = [_vector, _velocityToTarget] call bis_fnc_vectorMultiply;	
-
-// _vector set [2, 50];
-
-_pod attachTo [_source, ([-0.1,0.45,0] vectorAdd (boundingCenter _pod)) ];
+_podAttachHeight = -2;
+_pod attachTo [_source, ([-0.1,0.45,_podAttachHeight] vectorAdd (boundingCenter _pod)) ];
 waitUntil {
 	(!isNull attachedTo _pod)
 };
 
-_source setVelocity [0,0,35];
+// player attachTo [_pod];
+// waitUntil {
+// 	(!isNull attachedTo player)
+// };
+
+
+
+// player setMass 1;
+// { _x setmass 0; } foreach (attachedObjects player);
+
+_targetPos = if (player distance TITAN > 75) then { (TITAN modelToWorld [0, -100, 0]) } else { (getMarkerPos  "drop_target") };
+_playerPos = position player;
+
+_speed = 15;
+_dir = ((_targetPos select 0) - (_playerPos select 0)) atan2 ((_targetPos select 1) - (_playerPos select 1));
+_range = _playerPos distance _targetPos;
+
+player setVelocity [_speed * (sin _dir), _speed * (cos _dir), 5 * (_range / _speed)];
 
 _heightAbove = ((getPos _source) select 2);
 
@@ -210,43 +219,45 @@ _heightAbove = ((getPos _source) select 2);
 
 // player hideObjectGlobal true;
 
-adjustPodVelocity = {	
+// adjustPodVelocity = {	
+		
+// 	_key = (_this select 1);
 
-	_key = (_this select 1);
+// 	//32 r
+// 	// 30 l
+// 	// 17 u
+// 	// 31 d
 
-	//32 r
-	// 30 l
-	// 17 u
-	// 31 d
+// 	if (_key in [32, 30, 17, 31]) exitWith {
 
-	if (_key in [32, 30, 17, 31]) exitWith {
-
-		_rot = _key call {
-			if (_this == 17) exitWith { 0 };
-			if (_this == 31) exitWith { 180 };
-			if (_this == 30) exitWith { -90 };
-			if (_this == 32) exitWith { 90 };
-			0
-		};
+// 		_rot = _key call {
+// 			if (_this == 17) exitWith { 0 };
+// 			if (_this == 31) exitWith { 180 };
+// 			if (_this == 30) exitWith { -90 };
+// 			if (_this == 32) exitWith { 90 };
+// 			0
+// 		};
 
 
-		_dir = [(getDir player) + _rot] call normalizeAngle;
-		_speed = 0.25;
-		_vel = velocity player;
+// 		_dir = [(getDir player) + _rot] call normalizeAngle;
+// 		_speed = 0.25;
+// 		_vel = velocity player;
 
-		player setVelocity [(_vel select 0)+(sin _dir*_speed),(_vel select 1)+(cos _dir*_speed),(_vel select 2)];	
+// 		player setVelocity [(_vel select 0)+(sin _dir*_speed),(_vel select 1)+(cos _dir*_speed),(_vel select 2)];	
 
-		false
-	};
-};
+// 		false
+// 	};
 
-if (!isNil "KD_EH") then { (findDisplay 46) displayRemoveEventHandler ["KeyDown", KD_EH]; };
-KD_EH = (findDisplay 46) displayAddEventHandler ["KeyDown", "_this call adjustPodVelocity; false"];
+// 	false
+// };
+
+// if (!isNil "KD_EH") then { (findDisplay 46) displayRemoveEventHandler ["KeyDown", KD_EH]; };
+// KD_EH = (findDisplay 46) displayAddEventHandler ["KeyDown", "_this call adjustPodVelocity; false"];
 
 
 // Wait for us to land
 _maxTime = 30;
-_minTime = time + 2;
+_minTime = time + 3;
 _timeout = time + _maxTime;
 _startAltitude = (getPosASL _source) select 2;
 _minAltitude = 5;
@@ -257,6 +268,7 @@ _podDir = getDir _pod;
 
 waitUntil {
 	
+
 	if (time - _lastEffect > 1) then {
 		_lastEffect = time;
 
@@ -272,7 +284,7 @@ waitUntil {
 
 	_p1 = getPosASL _source;
 	_p2 = +_p1;
-	_p2 set [2, (_p2 select 2) - 3];
+	_p2 set [2, (_p2 select 2) - 3 + (_podAttachHeight)];
 
 	if ( abs ((_p1 select 2) - _startAltitude) > _minAltitude || time > _minTime) then {
 		_reachedMinAltitude = true;
@@ -297,10 +309,10 @@ waitUntil {
 };
 
 // Remove key event handler
-(findDisplay 46) displayRemoveEventHandler ["KeyDown", KD_EH];
+// (findDisplay 46) displayRemoveEventHandler ["KeyDown", KD_EH];
 
 // Create burn effect
-_heightAbove = ((getPos _source) select 2);
+_heightAbove = (((getPos _source) select 2)) + (_podAttachHeight);
 
 {
 	[_pod,(_x select 2), (_x select 0), (_x select 1)] spawn _thrustEffect;
@@ -345,9 +357,6 @@ waitUntil {
 
 	(time > _timeout || !alive _source)
 };
-
-
-
 _source switchMove "";
 
 _pod call _destroyPod;

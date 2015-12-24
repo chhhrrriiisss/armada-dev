@@ -8,4 +8,11 @@ author="SLI";
 OnLoadName = "Armada";
 OnLoadMission = "Titan test mission";
 enableDebugConsole = 1;
-disableAI = true;
+// disableAI = true;
+
+class Header
+{
+	gameType = SANDBOX; 
+	minPlayers = 1; 
+	maxPlayers = 12; 
+};

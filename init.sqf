@@ -27,27 +27,34 @@ MISSION_ROOT = call {
 };
 
 
-
 // Global Variables / Functions
 call compile preprocessFile "config.sqf";
 call compile preprocessFile "global\compile.sqf";
-call compile preprocessFile "briefing.sqf";
+//call compile preprocessFile "briefing.sqf";
 
 hint "v0.1.0 DEV";
 
-if (TTN_Client || TTN_JIP) then {   
+99999 cutText ["Loading...", "BLACK", 0.01]; 
+[] spawn {
 
-    call compile preprocessFile "client\compile.sqf";  
-    // waitUntil {!isNull player};               
-    // [] execVM 'client\init.sqf'; 
+	waitUntil {
+		Sleep 0.1;
+		!isNil "globalCompileComplete"
+	};
+
+	if (TTN_Client || TTN_JIP) then {   
+
+	    call compile preprocessFile "client\compile.sqf";        
+	    [] spawn initClient;
+
+	};
+
+	if (TTN_Server) then {    
+	    call compile preprocessFile "server\compile.sqf";   
+	     [] spawn initServer;
+	};
 
 };
 
-if (TTN_Server) then {      
-
-    //call compile preprocessFile "server\compile.sqf";   
-    // [] spawn initServer;
-
-};
 
 

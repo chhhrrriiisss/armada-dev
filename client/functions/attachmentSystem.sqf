@@ -1,63 +1,6 @@
+if (true) exitWith {};
+
 player allowDamage false;
-
-removeAllActions player;
-
-PLAYER addAction ['Toggle attachment', {	
-	_enabled = player getVariable ['attachmentEnabled', false];
-	player setVariable ['attachmentEnabled', !_enabled];
-}];
-
-if (isNil "TITAN") then { TITAN = player };
-	
-
-PLAYER addAction ['Set position', {	
-	_p = (screenToWorld[0.5,0.5]);
-	_height = [(_p select 2), 40, 9999] call limitToRange;
-	_p set [2, _height];
-	TITAN setPos _p;
-}];
-
-PLAYER addAction ['Set target', {	
-	TITAN setVariable ['targetPosition',screenToWorld[0.5, 0.5], true ];
-}];
-
-PLAYER addAction ['Increase speed', {	
-	_spd = TITAN getVariable ['engineSpeed',0.01];
-	TITAN setVariable ['engineSpeed', (_spd + 0.005), true ];
-}];
-
-PLAYER addAction ['Decrease speed', {	
-	_spd = TITAN getVariable ['engineSpeed',0.01];
-	TITAN setVariable ['engineSpeed', (_spd - 0.005), true];
-}];
-
-PLAYER addAction ['Raise altitude', {	
-	_alt = TITAN getVariable ['maxAltitude', 40];
-	TITAN setVariable ['maxAltitude', (_alt + 2), true];
-}];
-
-PLAYER addAction ['Lower altitude', {	
-	_alt = TITAN getVariable ['maxAltitude', 40];
-	TITAN setVariable ['maxAltitude', (_alt - 2), true];
-}];
-
-PLAYER addAction ['Drop pod', {	
-	[(screenTOwORLD [0.5, 0.5])] execVM 'droppod.sqf';
-}];
-
-PLAYER addAction ['Start Engines', {	
-	_engines = TITAN getVariable ['engines', []];
-}];
-
-PLAYER addAction ['Stop Engines', {	
-	
-	_engines = TITAN getVariable ['engines', []];
-
-}];
-
-PLAYER addAction ['Camera', {	
-	[] execVM 'camera.sqs'; 
-}];
 
 _sleepPeriod = 1;
 _lastTitanCheck = time - _sleepPeriod;
@@ -113,7 +56,7 @@ waitUntil {
 				//systemchat format["Onboard Titan %1", time];
 
 				_targetTitan = TITAN;	
-				player disableCOllisionWith _targetTitan;
+				// player disableCOllisionWith _targetTitan;
 
 				ATWM_array = [
 					player,
